@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Container } from './styles';
+import { Container, Owner, Loading, BackButton } from './styles';
+import { FaArrowLeft } from 'react-icons/fa';
 import api from '../../services/api';
 
 export default function Repositorio({ match }) {
@@ -9,7 +10,7 @@ export default function Repositorio({ match }) {
 
   useEffect(() => {
     async function loadData() {
-      const repoName = decodeURIComponent(match.params.repository);
+      const repoName = decodeURIComponent(match.params.repositorio);
 
       const [repositorioData, issuesData] = await Promise.all([
         api.get(`/repos/${repoName}`),
@@ -26,7 +27,29 @@ export default function Repositorio({ match }) {
       setLoading(false);
     }
     loadData();
-  }, [match.params.repository]);
+  }, [match.params.repositorio]);
 
-  return <Container>Repositorio</Container>;
+  if (loading) {
+    return (
+      <Loading>
+        <h1>Carregando</h1>
+      </Loading>
+    );
+  }
+
+  return (
+    <Container>
+      <BackButton to='/'>
+        <FaArrowLeft color='#000' size={30}/>
+      </BackButton>
+      <Owner>
+        <img
+          src={repositorio.owner.avatar_url}
+          alt={repositorio.owner.login}
+        />
+        <h1>{repositorio.name}</h1>
+        <p>{repositorio.description}</p>
+      </Owner>
+    </Container>
+  );
 }
