@@ -8,6 +8,7 @@ export default function Main() {
   const [newRepo, setNewRepo] = useState('');
   const [repositories, setRepositories] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState(null);
 
   const handleSubmit = useCallback(
     (e) => {
@@ -15,8 +16,18 @@ export default function Main() {
 
       async function submit() {
         setLoading(true);
+        setAlert(null);
         try {
+          if (newRepo === '')
+            throw new Error('Você precisa indicar um repositório');
+
           const response = await api.get(`/repos/${newRepo}`);
+
+          const hasRepo = repositories.find(
+            (r) => r.name === response.data.full_name
+          );
+
+          if (hasRepo) throw new Error('Repositório duplicado');
 
           const data = {
             name: response.data.full_name,
@@ -25,6 +36,7 @@ export default function Main() {
           setRepositories([...repositories, data]);
           setNewRepo('');
         } catch (err) {
+          setAlert(true);
           console.log(err);
         } finally {
           setLoading(false);
@@ -50,12 +62,15 @@ export default function Main() {
         Meus Repositorios
       </h1>
 
-      <Form onSubmit={handleSubmit}>
+      <Form onSubmit={handleSubmit} error={alert}>
         <input
           type='text'
           placeholder='Adicionar Repositorio'
           value={newRepo}
-          onChange={(e) => setNewRepo(e.target.value)}
+          onChange={(e) => {
+            setNewRepo(e.target.value);
+            setAlert(null);
+          }}
         />
         <SubmitButton Loading={loading ? 1 : 0}>
           {loading ? (
